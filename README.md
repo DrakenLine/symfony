@@ -1,5 +1,5 @@
 # symfony
 
-TP 1 Symfony - YNOV
+TP Symfony - YNOV
 
 Alexandra FARINA
