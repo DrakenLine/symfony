@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Game;
+use App\Entity\Tag;
 use DateTime;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -23,6 +24,10 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
             $game->setUser($this->getReference('user'.random_int(0, UserFixtures::USER_COUNT -1)));
             $game->setCategory($this->getReference('category'.random_int(0, count(CategoryFixtures::CATEGORIES) -1)));
 
+            for ($j=0; $j < random_int(0,5); $j++){
+                $game->addTag($this->getReference('tag'.random_int(0, TagFixtures::TAG_COUNT - 1)));
+            }
+
             $manager->persist($game);
 
         }
@@ -32,7 +37,8 @@ class GameFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(){
         return[
             UserFixtures::class,
-            CategoryFixtures::class
+            CategoryFixtures::class,
+            TagFixtures::class
         ];
     }
 }

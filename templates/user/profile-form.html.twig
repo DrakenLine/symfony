@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ parent()}}Modifier vos paramètres {%endblock%}
+
+{% block body %}
+	<h2 class="my-4">Modifier vos paramètres</h2>
+
+	{{ form(profile_form) }}
+{% endblock %}

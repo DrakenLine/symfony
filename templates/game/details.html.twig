@@ -1,12 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ parent() }} Détails du jeu {{game.name}}{% endblock %}
+{% block title %}{{ parent() }} Détails du jeu {{ game.name }}{% endblock %}
 
 {% block body %}
-
-	<h1>{{game.name}}</h1>
-	<p>{{game.description}}</p>
-	<a href="{{ path('home')}}" class="btn btn-success"> Accueil</a>
-	<a href="{{ path('user_details', {id: game.user.id}) }}" class="btn btn-info">Voir l'utilisateur du jeu</a>
-
+	<h1 class="my-4">{{ game.name }}</h1>
+	<img width="300" src="{{ game.images ? vich_uploader_asset(game, 'imageFile') : 'http://placehold.it/300x300' }}" alt="">
+	<p>{{ game.description }}</p>
+	<a class="btn btn-success" href="{{ path('home') }}">Revenir à la page d'accueil</a>
+	<a class="btn btn-info" href="{{ path('user_details', { id : game.user.id }) }}">Voir l'utilisateur du jeu</a>
 {% endblock %}

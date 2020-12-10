@@ -6,9 +6,12 @@ use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=CategoryRepository::class)
+ * @UniqueEntity(fields={"slug"})
+ * @UniqueEntity(fields={"name"})
  */
 class Category
 {
@@ -20,20 +23,20 @@ class Category
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=30)
+     * @ORM\Column(type="string", length=30, unique=true)
      */
     private $name;
+
+    /**
+     * @ORM\Column(type="string", length=60, unique=true)
+     */
+    private $slug;
 
     /**
      * @ORM\OneToMany(targetEntity=Game::class, mappedBy="category")
      */
     private $games;
 
-    /**
-     * @ORM\Column(type="string", length=60)
-     */
-    private $slug;
-    
     public function __construct()
     {
         $this->games = new ArrayCollection();
@@ -56,24 +59,14 @@ class Category
         return $this;
     }
 
-    public function addGame(Game $game): self
+    public function getSlug(): ?string
     {
-        if (!$this->games->contains($game)) {
-            $this->games[] = $game;
-            $game->setCategoryId($this);
-        }
-
-        return $this;
+        return $this->slug;
     }
 
-    public function removeGame(Game $game): self
+    public function setSlug(string $slug): self
     {
-        if ($this->games->removeElement($game)) {
-            // set the owning side to null (unless already changed)
-            if ($game->getCategoryId() === $this) {
-                $game->setCategoryId(null);
-            }
-        }
+        $this->slug = $slug;
 
         return $this;
     }
@@ -86,14 +79,24 @@ class Category
         return $this->games;
     }
 
-    public function getSlug(): ?string
+    public function addGame(Game $game): self
     {
-        return $this->slug;
+        if (!$this->games->contains($game)) {
+            $this->games[] = $game;
+            $game->setCategory($this);
+        }
+
+        return $this;
     }
 
-    public function setSlug(string $slug): self
+    public function removeGame(Game $game): self
     {
-        $this->slug = $slug;
+        if ($this->games->removeElement($game)) {
+            // set the owning side to null (unless already changed)
+            if ($game->getCategory() === $this) {
+                $game->setCategory(null);
+            }
+        }
 
         return $this;
     }

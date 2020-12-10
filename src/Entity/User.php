@@ -3,15 +3,21 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Vich\UploaderBundle\Entity\File as EmbeddedFile;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity(fields={"email"}, message="There is already an account with this email")
+ * @Vich\Uploadable
  */
-class User implements UserInterface
+class User implements UserInterface, \Serializable
 {
     /**
      * @ORM\Id
@@ -51,6 +57,12 @@ class User implements UserInterface
     private $avatar;
 
     /**
+     * @Vich\UploadableField(mapping="avatar", fileNameProperty="avatar")
+     * @Assert\Image(mimeTypes={"image\png", "image/jpeg"}, maxSize="2M")
+     */
+    private $avatarFile;
+
+    /**
      * @ORM\OneToMany(targetEntity=Game::class, mappedBy="user", orphanRemoval=true)
      */
     private $games;
@@ -64,6 +76,16 @@ class User implements UserInterface
      * @ORM\Column(type="text", nullable=true)
      */
     private $description;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $isVerified = false;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $updatedAt;
 
     public function __construct()
     {
@@ -148,14 +170,14 @@ class User implements UserInterface
     }
 
     /**
-     * @return Collection|game[]
+     * @return Collection|Game[]
      */
     public function getGames(): Collection
     {
         return $this->games;
     }
 
-    public function addGame(game $game): self
+    public function addGame(Game $game): self
     {
         if (!$this->games->contains($game)) {
             $this->games[] = $game;
@@ -165,7 +187,7 @@ class User implements UserInterface
         return $this;
     }
 
-    public function removeGame(game $game): self
+    public function removeGame(Game $game): self
     {
         if ($this->games->removeElement($game)) {
             // set the owning side to null (unless already changed)
@@ -213,6 +235,69 @@ class User implements UserInterface
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAvatarFile()
+    {
+        return $this->avatarFile;
+    }
+
+    /**
+     * @param mixed $avatarFile
+     * @return User
+     */
+    public function setAvatarFile($avatarFile)
+    {
+        $this->avatarFile = $avatarFile;
+        if ($avatarFile != null){
+            $this->updatedAt = new \DateTimeImmutable(); //immutable il changera un clone de lui même
+        }
+        return $this;
+    }
+
+
+    public function serialize()
+    {
+        return serialize( [
+            'id' => $this->id,
+            'email'=>$this->email,
+            'password'=>$this->password,
+        ]);
+    }
+
+    public function unserialize($serialized)
+    {
+        $infos = unserialize($serialized);
+        $this->id = $infos['id'];
+        $this->password = $infos['password'];
+        $this->email = $infos['email'];
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
 
         return $this;
     }

@@ -5,6 +5,7 @@ namespace App\Subscriber;
 
 
 use App\Entity\Category;
+use App\Entity\Tag;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -25,14 +26,15 @@ class SlugListener
     }
 
     public function prePersist(LifecycleEventArgs $args){
-        $category = $args->getEntity();
+        $entity = $args->getEntity();
 
-        if (! $category instanceof Category){
+        //listener déclencher que si tag ou category class
+        if (! in_array(get_class($entity), [Category::class, Tag::class])){
             return;
         }
 
-        if (! $category->getSlug()){
-            $category->setSlug($this->slugger->slug($category->getName()));
+        if( ! $entity->getSlug()) {
+            $entity->setSlug(strtolower($this->slugger->slug($entity->getName())));
         }
 
     }
